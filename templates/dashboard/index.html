@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 1.5rem;">Dashboard</h1>
+
+<!-- Stats Row -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Sales Today</div>
+        <div class="stat-value">{{ sales_today['count'] }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Revenue Today</div>
+        <div class="stat-value">¥{{ "%.2f"|format(sales_today['revenue']) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Products</div>
+        <div class="stat-value">{{ total_products['count'] }}</div>
+    </div>
+    <div class="stat-card {% if pending_orders['count'] > 0 %}warning{% endif %}">
+        <div class="stat-label">Pending Orders</div>
+        <div class="stat-value">{{ pending_orders['count'] }}</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+
+    <!-- Low Stock Alerts -->
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <h2>⚠ Low Stock Alerts</h2>
+            <a href="{{ url_for('procurement.new') }}" class="btn">Order Stock</a>
+        </div>
+        {% if low_stock %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Stock</th>
+                    <th>Reorder Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in low_stock %}
+                <tr>
+                    <td>{{ item['name'] }}</td>
+                    <td><span class="badge danger">{{ item['quantity'] }}</span></td>
+                    <td>{{ item['reorder_level'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #999; padding: 1rem 0;">All products are sufficiently stocked.</p>
+        {% endif %}
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <h2>Recent Sales</h2>
+            <a href="{{ url_for('sales.index') }}" class="btn">View All</a>
+        </div>
+        {% if recent_sales %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in recent_sales %}
+                <tr>
+                    <td><a href="{{ url_for('sales.detail', id=sale['id']) }}">#{{ sale['id'] }}</a></td>
+                    <td>{{ sale['created_at'] }}</td>
+                    <td>¥{{ "%.2f"|format(sale['total_amount']) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #999; padding: 1rem 0;">No sales recorded yet.</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

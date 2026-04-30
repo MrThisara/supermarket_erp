@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Products</h1>
+    <a href="{{ url_for('products.add') }}" class="btn">Add Product</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ product['name'] }}</td>
+            <td>¥{{ product['price'] }}</td>
+            <td>
+                {% if product['quantity'] <= 10 %}
+                    <span class="badge danger">{{ product['quantity'] }}</span>
+                {% else %}
+                    <span class="badge success">{{ product['quantity'] }}</span>
+                {% endif %}
+            </td>
+            <td>
+                <form method="POST" action="{{ url_for('products.delete', id=product['id']) }}">
+                    <button type="submit" class="btn danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

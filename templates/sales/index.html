@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Sales</h1>
+    <a href="{{ url_for('sales.new') }}" class="btn">New Sale</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sale in sales %}
+        <tr>
+            <td>#{{ sale['id'] }}</td>
+            <td>{{ sale['created_at'] }}</td>
+            <td>¥{{ sale['total_amount'] }}</td>
+            <td>
+                <a href="{{ url_for('sales.detail', id=sale['id']) }}" class="btn">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

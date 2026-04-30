@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}New Sale{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>New Sale</h1>
+    <a href="{{ url_for('sales.index') }}" class="btn">Back</a>
+</div>
+
+<div class="pos-container">
+
+    <!-- Left: Product List -->
+    <div class="pos-products">
+        <h2>Products</h2>
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card" onclick="addToCart({{ product['id'] }}, '{{ product['name'] }}', {{ product['price'] }}, {{ product['quantity'] }})">
+                <div class="product-card-name">{{ product['name'] }}</div>
+                <div class="product-card-price">¥{{ product['price'] }}</div>
+                <div class="product-card-stock">Stock: {{ product['quantity'] }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right: Cart -->
+    <div class="pos-cart">
+        <h2>Cart</h2>
+        <div id="cart-items">
+            <p id="empty-msg" style="color: #999;">No items added yet.</p>
+        </div>
+        <div class="cart-total">
+            Total: ¥<span id="cart-total">0</span>
+        </div>
+        <form method="POST" id="sale-form">
+            <div id="form-inputs"></div>
+            <button type="submit" class="btn" style="width:100%; margin-top: 1rem;" onclick="return validateCart()">Complete Sale</button>
+        </form>
+    </div>
+
+</div>
+
+<style>
+.pos-container {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.pos-products {
+    flex: 2;
+}
+
+.pos-products h2, .pos-cart h2 {
+    margin-bottom: 1rem;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.product-card {
+    background: white;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.1s;
+}
+
+.product-card:hover {
+    border-color: #2c3e50;
+    transform: translateY(-2px);
+}
+
+.product-card-name {
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+
+.product-card-price {
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.product-card-stock {
+    color: #999;
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+}
+
+.pos-cart {
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: sticky;
+    top: 1rem;
+    min-width: 280px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.cart-item-info {
+    flex: 1;
+}
+
+.cart-item-name {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.cart-item-price {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.cart-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.qty-btn {
+    width: 26px;
+    height: 26px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qty-btn:hover {
+    background: #2c3e50;
+    color: white;
+}
+
+.cart-total {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #2c3e50;
+}
+</style>
+
+<script>
+    let cart = {};
+    let stockLimits = {};
+
+    function addToCart(id, name, price, stock) {
+        if (cart[id]) {
+            if (cart[id].quantity >= stockLimits[id]) {
+                alert('Not enough stock!');
+                return;
+            }
+            cart[id].quantity += 1;
+        } else {
+            cart[id] = { name, price, quantity: 1 };
+            stockLimits[id] = stock;
+        }
+        renderCart();
+    }
+
+    function changeQty(id, delta) {
+        if (!cart[id]) return;
+        cart[id].quantity += delta;
+        if (cart[id].quantity <= 0) {
+            delete cart[id];
+        } else if (cart[id].quantity > stockLimits[id]) {
+            cart[id].quantity = stockLimits[id];
+            alert('Not enough stock!');
+        }
+        renderCart();
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cart-items');
+        const emptyMsg = document.getElementById('empty-msg');
+        const formInputs = document.getElementById('form-inputs');
+
+        container.innerHTML = '';
+        formInputs.innerHTML = '';
+
+        let total = 0;
+        let hasItems = false;
+
+        for (const [id, item] of Object.entries(cart)) {
+            hasItems = true;
+            const subtotal = item.price * item.quantity;
+            total += subtotal;
+
+            container.innerHTML += `
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.name}</div>
+                        <div class="cart-item-price">¥${item.price} x ${item.quantity} = ¥${subtotal.toFixed(2)}</div>
+                    </div>
+                    <div class="cart-item-controls">
+                        <button type="button" class="qty-btn" onclick="changeQty(${id}, -1)">−</button>
+                        <span>${item.quantity}</span>
+                        <button type="button" class="qty-btn" onclick="changeQty(${id}, 1)">+</button>
+                    </div>
+                </div>
+            `;
+
+            formInputs.innerHTML += `
+                <input type="hidden" name="product_id" value="${id}">
+                <input type="hidden" name="quantity" value="${item.quantity}">
+            `;
+        }
+
+        if (!hasItems) {
+            container.innerHTML = '<p id="empty-msg" style="color:#999;">No items added yet.</p>';
+        }
+
+        document.getElementById('cart-total').textContent = total.toFixed(2);
+    }
+
+    function validateCart() {
+        if (Object.keys(cart).length === 0) {
+            alert('Please add at least one item to the cart.');
+            return false;
+        }
+        return true;
+    }
+</script>
+{% endblock %}s

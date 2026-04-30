@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order['id'] }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Purchase Order #{{ order['id'] }}</h1>
+    <a href="{{ url_for('procurement.index') }}" class="btn">Back</a>
+</div>
+
+<div class="form-container" style="max-width: 700px;">
+    <p style="margin-bottom: 0.5rem; color: #666;">{{ order['created_at'] }}</p>
+    <p style="margin-bottom: 1.5rem;">
+        Status:
+        {% if order['status'] == 'pending' %}
+            <span class="badge warning">Pending</span>
+        {% elif order['status'] == 'received' %}
+            <span class="badge success">Received</span>
+        {% else %}
+            <span class="badge danger">Cancelled</span>
+        {% endif %}
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity Ordered</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item['name'] }}</td>
+                <td>{{ item['quantity'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if order['status'] == 'pending' %}
+    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+        <form method="POST" action="{{ url_for('procurement.receive', id=order['id']) }}">
+            <button type="submit" class="btn">Mark as Received</button>
+        </form>
+        <form method="POST" action="{{ url_for('procurement.cancel', id=order['id']) }}">
+            <button type="submit" class="btn danger">Cancel Order</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
