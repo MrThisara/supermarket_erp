@@ -1,0 +1,15 @@
+# python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Database
+instance/
+*.db
+
+# Environment variables (if using dotenv)
+.env
+
+# Virtual environment (if i have one)
+venv/
+env/
